@@ -1,0 +1,158 @@
+#cloud-config
+output:
+  all: "| tee -a /var/log/cloud-init-output.log"
+
+users:
+  - name: ${admin_username}
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: [sudo]
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - |
+        ${file("${ssh_public_key_path}")}
+
+package_update: true
+packages:
+  - curl
+  - tar
+  - jq
+  - ca-certificates
+  - gnupg
+  - apt-transport-https
+  - python3
+  - python3-pip
+  - python3-venv
+
+write_files:
+  - path: /opt/ado-agent/token
+    permissions: '0600'
+    owner: root:root
+    content: "${ado_pat}"
+
+  - path: /opt/ado-agent/install.sh
+    permissions: '0755'
+    owner: root:root
+    content: |
+      #!/usr/bin/env bash
+      set -euo pipefail
+      export DEBIAN_FRONTEND=noninteractive
+
+      # -------- Logging & helpers --------
+      LOG_FILE="/var/log/ado-install.log"
+      STATUS_FILE="/var/log/ado-install.status"
+      exec > >(tee -a "$LOG_FILE") 2>&1
+      ts()   { date +"%F %T"; }
+      log()  { echo "[$(ts)] $*"; }
+      ok()   { echo "[$(ts)] $*"; }
+      warn() { echo "[$(ts)] $*"; }
+      err()  { echo "[$(ts)] $*"; }
+      step() { echo; echo "[$(ts)] ==== $* ===="; }
+      trap 'err "Aborted at line $LINENO"; echo "FAILED" > "$STATUS_FILE"' EXIT
+
+      ADMIN="${admin_username}"
+      AGENT_DIR="/opt/ado-agent"
+      ADO_URL="${ado_org_url}"
+      POOL="${agent_pool_name}"
+      AGENT_NAME="${vm_name}"
+      VER="${agent_version}"
+      DOWNLOAD_URL="https://download.agent.dev.azure.com/agent/${agent_version}/vsts-agent-linux-x64-${agent_version}.tar.gz"
+
+      step "Context"
+      log "admin=$ADMIN"
+      log "org=$ADO_URL"
+      log "pool=$POOL"
+      log "agent=$AGENT_NAME"
+      log "version=$VER"
+      log "download=$DOWNLOAD_URL"
+      echo "[INFO] Bootstrap: admin=$ADMIN org=$ADO_URL pool=$POOL agent=$AGENT_NAME ver=$VER"
+
+      # --- Azure CLI ---
+      step "Install Azure CLI"
+      echo "[INFO] Installing Azure CLI"
+      curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+      az --version >/dev/null || echo "[WARN] Azure CLI not yet in PATH"
+
+      # --- Google Cloud SDK ---
+      step "Install Google Cloud SDK"
+      echo "[INFO] Installing Google Cloud SDK"
+      install -d -m 0755 /usr/share/keyrings
+      curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor >/usr/share/keyrings/cloud.google.gpg
+      echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" > /etc/apt/sources.list.d/google-cloud-sdk.list
+      apt-get update -y
+      apt-get install -y google-cloud-cli
+      gcloud --version >/dev/null || echo "[WARN] gcloud not yet in PATH"
+
+      # --- PATH updates for admin user ---
+      step "Persist PATH and aliases for ${ADMIN}"
+      echo 'export PATH=$PATH:/usr/bin:/usr/local/bin' >> /home/${admin_username}/.bashrc
+      echo 'alias az="/usr/bin/az"' >> /home/${admin_username}/.bashrc
+      echo 'alias gcloud="/usr/bin/gcloud"' >> /home/${admin_username}/.bashrc
+      chown ${admin_username}:${admin_username} /home/${admin_username}/.bashrc
+
+      # Prepare agent dir
+      step "Prepare agent directory"
+      mkdir -p "$AGENT_DIR"
+      cd "$AGENT_DIR"
+
+      # Try removal if this isn't first boot; continue on failure
+      step "Try prior agent removal (non-fatal)"
+      if [ -x ./config.sh ]; then
+        echo "[INFO] Attempting prior agent removal (non-fatal if missing)"
+        if sudo -u "$ADMIN" ./config.sh remove --unattended --auth pat --token "$(sudo cat /opt/ado-agent/token)"; then
+          echo "[INFO] Previous registration removed."
+        else
+          rc=$?
+          echo "[INFO] No prior registration to remove (rc=$rc). Continuing."
+        fi
+      fi
+
+      # Clean any local leftovers (harmless on first boot)
+      step "Clean local leftovers"
+      rm -f agent.tar.gz || true
+      rm -rf _diag externals bin config.sh runsvc.sh svc.sh || true
+      rm -f Agent.*.log || true
+
+      step "Download agent ${VER}"
+      echo "[INFO] Downloading agent from $DOWNLOAD_URL"
+      curl -fSLo agent.tar.gz "$DOWNLOAD_URL"
+
+      step "Unpack agent"
+      echo "[INFO] Unpacking agent"
+      tar -zxf agent.tar.gz
+
+      step "Install agent dependencies"
+      echo "[INFO] Installing agent dependencies"
+      ./bin/installdependencies.sh
+
+      step "Ownership"
+      chown -R "$ADMIN:$ADMIN" "$AGENT_DIR"
+
+      TOKEN="$(cat $AGENT_DIR/token)"
+
+      step "Configure agent (single attempt)"
+      echo "[INFO] Configuring agent"
+      sudo -u "$ADMIN" ./config.sh --unattended \
+        --url "$ADO_URL" \
+        --auth pat \
+        --token "$TOKEN" \
+        --pool "$POOL" \
+        --agent "$AGENT_NAME" \
+        --acceptTeeEula
+
+      step "Install & start service"
+      echo "[INFO] Installing & starting service"
+      ./svc.sh install
+      ./svc.sh start
+      ./svc.sh status || true
+
+      step "Tail agent log"
+      echo "[INFO] Setup complete"
+      tail -n 120 "$AGENT_DIR"/_diag/Agent_*.log 2>/dev/null || true
+
+      echo "SUCCESS" > "$STATUS_FILE"
+      ok "All done"
+      trap - EXIT
+
+runcmd:
+  - [ bash, -lc, "chmod +x /opt/ado-agent/install.sh" ]
+  - [ bash, -lc, "/opt/ado-agent/install.sh" ]
