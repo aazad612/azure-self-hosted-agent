@@ -59,7 +59,7 @@ terraform apply
 terraform apply -replace=azurerm_linux_virtual_machine.vm -auto-approve
 
 # Connect to VM to debug (IP will be output from the terraform apply above)
-ssh -i ~/.ssh/computevm azureadmin@222.22.22.22
+ssh -i ~/.ssh/computevm azureadmin@172.173.222.80
 
 cat /var/log/ado_install.log
 

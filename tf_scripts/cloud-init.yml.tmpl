@@ -83,7 +83,7 @@ write_files:
       gcloud --version >/dev/null || echo "[WARN] gcloud not yet in PATH"
 
       # --- PATH updates for admin user ---
-      step "Persist PATH and aliases for ${ADMIN}"
+      step "Persist PATH and aliases for $ADMIN"
       echo 'export PATH=$PATH:/usr/bin:/usr/local/bin' >> /home/${admin_username}/.bashrc
       echo 'alias az="/usr/bin/az"' >> /home/${admin_username}/.bashrc
       echo 'alias gcloud="/usr/bin/gcloud"' >> /home/${admin_username}/.bashrc
@@ -112,7 +112,7 @@ write_files:
       rm -rf _diag externals bin config.sh runsvc.sh svc.sh || true
       rm -f Agent.*.log || true
 
-      step "Download agent ${VER}"
+      step "Download agent $VER"
       echo "[INFO] Downloading agent from $DOWNLOAD_URL"
       curl -fSLo agent.tar.gz "$DOWNLOAD_URL"
 
