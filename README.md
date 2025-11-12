@@ -40,16 +40,29 @@ git config --global user.email "johney@aazads.us"
 git config --list
 git config --global credential.helper manager
 
-mkdir c:\work
-cd c:\work 
+mkdir /mnt/c/work
+cd /mnt/c/work 
 
 git clone https://github.com/aazad612/azure-self-hosted-agent.git
 
 cd azure-self-hosted-agent
 
 # SSH Keys 
-ssh-keygen -t rsa -b 4096 -C "johney@aazads.us" -f ~/.ssh/computevm-test
+ssh-keygen -t rsa -b 4096 -C "johney@aazads.us" -f ~/.ssh/computevm
+```
 
+## Update TFVARS and Create a PAT 
+Create a personal access token in azure devops org 
+https://dev.azure.com/aazadsgcp/_usersSettings/tokens
+
+create a file called sensitive.auto.tfvars and populate it with the below 2 values. 
+
+ado_pat = <your personal access token>
+my_ip_cidr = <your ip address/32>
+
+## Terraform apply 
+
+```bash
 # Terraform  
 terraform init
 terraform plan
