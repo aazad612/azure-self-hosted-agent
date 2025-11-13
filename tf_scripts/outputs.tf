@@ -4,7 +4,7 @@ output "agent_public_ip" {
 }
 
 output "ssh" {
-  value       = "ssh ${var.admin_username}@${azurerm_public_ip.pip.ip_address}"
+  value       = "ssh  -i ~/.ssh/computevm ${var.admin_username}@${azurerm_public_ip.pip.ip_address}"
   description = "SSH command"
 }
 
