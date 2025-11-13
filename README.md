@@ -58,7 +58,10 @@ cd azure-self-hosted-agent
 ssh-keygen -t rsa -b 4096 -C "johney@aazads.us" -f ~/.ssh/computevm
 ```
 
-## Update TFVARS and Create a PAT 
+## Configuration Driven Execution - Terraform.tfvars
+This ensures the code is highly reusable, avoid defaults in variables.tf
+
+### Create a PAT 
 Create a personal access token in azure devops org 
 https://dev.azure.com/aazadsgcp/_usersSettings/tokens
 
@@ -68,6 +71,8 @@ create a file called sensitive.auto.tfvars and populate it with the below 2 valu
 ado_pat = <your personal access token>
 my_ip_cidr = <your ip address/32>
 ```
+
+
 
 ## Terraform apply 
 
