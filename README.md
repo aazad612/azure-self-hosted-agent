@@ -1,12 +1,15 @@
 # Azure DevOps Self-Hosted Agent (Ubuntu) Setup Guide
 
-This guide walks through provisioning an Azure VM and configuring it as a self-hosted Azure DevOps agent.  
-It assumes:
-- You have an Azure subscription
-- You already have an Azure DevOps organization (e.g. `https://dev.azure.com/aazadsgcp`)
-- Have Azure-CLI, GIT and Terraform installed on your machine.
+In this demo we will setup an Azure self hosted agent pool. I built this POC to deploy GCP resources using Azure DevOps.
 
----
+## Prerequisites 
+
+- Azure subscription and an empty resource group.
+- Azure DevOps organization (e.g. `https://dev.azure.com/aazadsgcp`)
+- Softwares Installed 
+* Azure-CLI
+* GIT 
+* Terraform
 
 ## Steps
 
