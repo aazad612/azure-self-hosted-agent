@@ -48,6 +48,8 @@ az account list --output table
 az account set --subscription "devops_gcp"
 az account show --output table
 
+az group create --name rg-aazads-org --location eastus
+
 git clone https://github.com/aazad612/azure-self-hosted-agent.git
 
 cd azure-self-hosted-agent
