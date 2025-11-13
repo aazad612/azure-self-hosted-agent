@@ -1,6 +1,29 @@
-# How to setup Azure DevOps (Ubuntu) Agent for self hosted or custom agent. 
+# Azure DevOps (Ubuntu) Agent — Production-Grade, Cloud-Init Driven
 
-While the script of importance for everyone would be the cloud-init.yml.tmpl which configures the virtual machine and should be reused, if you are complete beginner the scripts in this repo can setup a self hosted agent pool in an actual workplace like setup.
+This guide shows you how to build a real workplace-grade Azure DevOps self-hosted (custom) Linux agent, the way it’s done in professional environments:
+
+- Fully automated provisioning using Terraform
+- Zero manual SSH setup
+- Cloud-init based bootstrapping that configures everything at first boot
+- Idempotent, reproducible, infrastructure-as-code
+
+**If you are new to Azure DevOps, you can still follow along. But if you already work with AWS or GCP and want to do DevOps on Azure the “proper” way, this repo is built for you.**
+
+## These scripts automate the entire lifecycle of a production-ready DevOps agent:
+
+- Creates an Azure VM
+- Configures networking
+- Sets up an Azure DevOps agent pool
+- Passes all configuration to the VM using cloud-init
+    - Azure CLI
+    - Google Cloud SDK
+    - Agent installation
+    - Automatic service setup
+    - Agent registration to Azure DevOps
+    - Instrumentation, logging, corrective flows
+    - Fully idempotent behavior
+    - Safe retries + safe cleanup
+
 
 ## Prerequisites 
 - Azure subscription and an empty resource group.
