@@ -1,4 +1,4 @@
-# Azure DevOps Self-Hosted Agent (Ubuntu) Setup Guide
+# How to setup Azure DevOps Self-Hosted Agent Pool (Ubuntu)
 
 In this demo we will setup an Azure self hosted agent pool. I built this POC to deploy GCP resources using Azure DevOps.
 
