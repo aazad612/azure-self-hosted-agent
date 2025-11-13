@@ -1,4 +1,4 @@
-# How to setup Azure DevOps (Ubuntu) Agent for selft hosted or custom agent. 
+# How to setup Azure DevOps (Ubuntu) Agent for self hosted or custom agent. 
 
 While the script of importance for everyone would be the cloud-init.yml.tmpl which configures the virtual machine and should be reused, if you are complete beginner the scripts in this repo can setup a self hosted agent pool in an actual workplace like setup.
 
