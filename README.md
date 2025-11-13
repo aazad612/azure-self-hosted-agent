@@ -3,13 +3,12 @@
 In this demo we will setup an Azure self hosted agent pool. I built this POC to deploy GCP resources using Azure DevOps.
 
 ## Prerequisites 
-
 - Azure subscription and an empty resource group.
 - Azure DevOps organization (e.g. `https://dev.azure.com/aazadsgcp`)
 - Softwares Installed 
-* Azure-CLI
-* GIT 
-* Terraform
+    * Azure-CLI
+    * GIT 
+    * Terraform
 
 ## Steps
 
